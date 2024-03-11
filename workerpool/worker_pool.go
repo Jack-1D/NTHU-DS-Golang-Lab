@@ -2,7 +2,6 @@ package workerpool
 
 import (
 	"context"
-	"fmt"
 	"sync"
 )
 
@@ -52,10 +51,6 @@ func (wp *workerPool) Start(ctx context.Context) {
 	for i := 0; i < wp.numWorkers; i++ {
 		go wp.run(ctx2)
 	}
-	// go func() {
-	// 	<-ctx.Done()
-	// 	cancel2()
-	// }()
 	wp.wg.Wait()
 }
 
@@ -72,22 +67,16 @@ func (wp *workerPool) run(ctx context.Context) {
 	//
 	// Keeps fetching task from the task channel, do the task,
 	// then makes sure to exit if context is done.
-	fmt.Println(1)
 	defer wp.wg.Done()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case v, more := <-wp.Tasks():
+		default:
+			v, more := <-wp.Tasks()
 			if !more {
 				return
 			}
-			// go func() {
-			// 	select {
-			// 	case <-ctx.Done():
-			// 		return
-			// 	}
-			// }()
 			wp.Results() <- v.Func(v.Args...)
 		}
 	}
